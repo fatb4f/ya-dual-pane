@@ -12,7 +12,10 @@ It establishes the authority boundary before any Kitty pane-mode shell is wired 
 - participant identity is stable and separate from left/right placement
 - the coordinator owns lease, epoch, sequence checks, and commit/reject flow
 - CUE policy files define the declarative contract
-- the runtime currently loads a JSON mirror of that policy until `cue export` is wired in
+- the runtime now loads `profiles/dev.cue` directly via `cue export`
+
+The Kitty pane-mode shell is now wired as `ya_dual_pane.layout` / `ya-layout`
+and manages a strict two-window split on top of this contract.
 
 ## Repository layout
 
@@ -21,7 +24,8 @@ It establishes the authority boundary before any Kitty pane-mode shell is wired 
 ├── README.md
 ├── pyproject.toml
 ├── bin/
-│   └── ya-coord
+│   ├── ya-coord
+│   └── ya-layout
 ├── cue.mod/
 │   └── module.cue
 ├── docs/
@@ -49,7 +53,9 @@ It establishes the authority boundary before any Kitty pane-mode shell is wired 
 │       ├── cli.py
 │       ├── coordinator.py
 │       ├── dds.py
+│       ├── layout.py
 │       ├── policy.py
+│       ├── transport.py
 │       └── types.py
 └── tests/
     └── test_coordinator.py
@@ -67,6 +73,12 @@ The staged coordinator already does the following:
 - suppresses duplicate event IDs
 - rejects policy-illegal addressed self-targets
 - emits structured `commit`, `reject`, or `ignore` outcomes as JSON lines
+
+The transport wrapper lives in `ya_dual_pane.transport.run_stream` and is
+exposed through `ya-coord run`.
+
+The Kitty pane-mode shell lives in `ya_dual_pane.layout.KittyPaneMode` and is
+exposed through `ya-layout`.
 
 ## Runtime model
 
@@ -90,14 +102,23 @@ python -m unittest discover -s tests -v
 
 ```bash
 PYTHONPATH=src python -m ya_dual_pane.cli run \
-  --policy runtime/policy.dev.json \
+  --policy profiles/dev.cue \
   < examples/ingress.jsonl
 ```
 
 ### Run via the helper wrapper
 
 ```bash
-PYTHONPATH=src bin/ya-coord run --policy runtime/policy.dev.json < examples/ingress.jsonl
+PYTHONPATH=src bin/ya-coord run --policy profiles/dev.cue < examples/ingress.jsonl
+```
+
+### Enter kitty pane mode
+
+```bash
+PYTHONPATH=src bin/ya-layout enter
+PYTHONPATH=src bin/ya-layout focus-peer
+PYTHONPATH=src bin/ya-layout close-peer
+PYTHONPATH=src bin/ya-layout status
 ```
 
 ## Input format
@@ -122,16 +143,12 @@ Each line may provide either:
 
 CUE files in `schema/`, `policy/`, and `profiles/` define the intended declarative authority plane.
 
-The current Python runtime does **not** evaluate CUE directly yet because the `cue` tool is not bootstrapped in this stage. Instead, it reads `runtime/policy.dev.json`, which mirrors the staged CUE profile.
-
-The next policy integration step is:
-
-- `cue export profiles/dev.cue > runtime/policy.dev.json`
-- then make the runtime treat that JSON as generated, not hand-authored
+The runtime exports `profiles/dev.cue` with `cue export` and treats the JSON mirror under `runtime/` as generated cache, not the source of truth.
 
 ## Next stage
 
-After this skeleton is validated, the next correct layer is the Kitty pane-mode shell bound against this contract:
+After this skeleton is validated, the next correct layer is addressed peer
+operations bound against this contract:
 
 - pane spawn / close
 - stable placement map

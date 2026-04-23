@@ -16,7 +16,9 @@ def parse_wire_line(line: str) -> DdsEnvelope:
     Yazi reports payloads as:
         kind,receiver,sender,{json body}
 
-    We split on the first three commas only so that JSON commas stay intact.
+    We split on the first three commas only so that payload commas stay intact.
+    The body is preserved as JSON when possible and otherwise kept as a raw
+    string so non-JSON DDS bodies are not lost.
     """
 
     parts = line.split(",", 3)
@@ -26,8 +28,8 @@ def parse_wire_line(line: str) -> DdsEnvelope:
     kind, receiver, sender, body_raw = parts
     try:
         body: Any = json.loads(body_raw)
-    except json.JSONDecodeError as exc:
-        raise DdsParseError(f"invalid DDS body JSON: {body_raw!r}") from exc
+    except json.JSONDecodeError:
+        body = body_raw
 
     return DdsEnvelope(kind=kind, receiver=receiver, sender=sender, body=body)
 

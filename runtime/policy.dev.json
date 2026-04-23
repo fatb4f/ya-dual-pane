@@ -1,31 +1,52 @@
 {
-  "participants": {
-    "yazi.primary": {
-      "sender_ids": ["100"],
-      "roles": ["pane", "lease-candidate"],
-      "placement": "left"
-    },
-    "yazi.peer": {
-      "sender_ids": ["200"],
-      "roles": ["pane", "lease-candidate"],
-      "placement": "right"
-    }
-  },
-  "lease": {
-    "holder": "yazi.primary",
-    "epoch": 1,
-    "required_kinds": ["cd", "hover", "rename", "bulk", "@yank", "move", "trash", "delete"]
-  },
-  "routing": {
-    "broadcast_receiver": "0",
-    "self_target_reject_kinds": [
-      "reveal_in_peer",
-      "cd_peer_here",
-      "copy_to_peer",
-      "move_to_peer",
-      "send_hovered_to_peer",
-      "send_selected_to_peer"
+    "participants": [
+        {
+            "id": "yazi.primary",
+            "senderIds": [
+                "100"
+            ],
+            "roles": [
+                "pane",
+                "lease-candidate"
+            ],
+            "placement": "left"
+        },
+        {
+            "id": "yazi.peer",
+            "senderIds": [
+                "200"
+            ],
+            "roles": [
+                "pane",
+                "lease-candidate"
+            ],
+            "placement": "right"
+        }
     ],
-    "ignore_duplicate_event_ids": true
-  }
+    "lease": {
+        "holder": "yazi.primary",
+        "epoch": 1,
+        "requiredKinds": [
+            "cd",
+            "hover",
+            "rename",
+            "bulk",
+            "@yank",
+            "move",
+            "trash",
+            "delete"
+        ]
+    },
+    "routing": {
+        "broadcastReceiver": "0",
+        "selfTargetRejectKinds": [
+            "reveal_in_peer",
+            "cd_peer_here",
+            "copy_to_peer",
+            "move_to_peer",
+            "send_hovered_to_peer",
+            "send_selected_to_peer"
+        ],
+        "ignoreDuplicateEventIds": true
+    }
 }

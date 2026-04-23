@@ -4,8 +4,9 @@ import (
 	"github.com/example/ya-dual-pane/policy"
 )
 
-dev: {
-	participants: policy.participants
-	lease:        policy.lease
-	routing:      policy.routing
+participants: policy.participants
+lease: policy.lease & {
+	holder: "yazi.primary"
+	epoch:  1
 }
+routing: policy.routing

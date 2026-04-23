@@ -4,6 +4,18 @@
 
 Establish the authority boundary before any Kitty pane-management logic is added.
 
+## Transport wrapper
+
+The runtime loop lives in `ya_dual_pane.transport.run_stream`.
+
+It:
+
+- loads a policy file from `.cue` or `.json`
+- reads JSONL ingress from stdin
+- adjudicates each event through the coordinator
+- writes authoritative JSONL outcomes to stdout
+- writes policy-load failures to stderr and exits non-zero
+
 ## Responsibilities
 
 - ingest DDS-shaped events
@@ -52,12 +64,18 @@ One JSON object per line with:
 - `meta.origin_seq`
 - `meta.lease_epoch`
 
+`wire_raw` may contain either JSON-bodied DDS payloads or raw string bodies.
+
 ## Output contract
 
 One JSON object per line with:
 
 - `decision`
 - `reason`
+- `error` for malformed input, if present
 - `wire`
 - `meta`
 - `state`
+
+On malformed input, `wire`, `meta`, and `state` are `null` and `error`
+describes the failure.
