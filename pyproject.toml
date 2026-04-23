@@ -14,6 +14,7 @@ dependencies = []
 
 [project.scripts]
 ya-coord = "ya_dual_pane.cli:main"
+ya-layout = "ya_dual_pane.layout:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

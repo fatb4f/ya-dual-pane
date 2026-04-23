@@ -9,15 +9,17 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from ya_dual_pane.cli import parse_input_line
 from ya_dual_pane.coordinator import Coordinator
 from ya_dual_pane.policy import load_policy
+from ya_dual_pane.dds import parse_wire_line
+from ya_dual_pane.transport import _error_outcome
+from ya_dual_pane.transport import parse_input_line
 
 
 class CoordinatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        cls.policy = load_policy(PROJECT_ROOT / "runtime" / "policy.dev.json")
+        cls.policy = load_policy(PROJECT_ROOT / "profiles" / "dev.cue")
 
     def setUp(self) -> None:
         self.coordinator = Coordinator(self.policy)
@@ -71,6 +73,14 @@ class CoordinatorTests(unittest.TestCase):
         self.assertEqual(outcome.decision, "reject")
         self.assertEqual(outcome.reason, "lease epoch mismatch")
 
+    def test_rejects_future_lease_epoch(self) -> None:
+        event = parse_input_line(
+            '{"wire":{"kind":"hover","receiver":"0","sender":"100","body":{"tab":0,"url":"/tmp/a"}},"meta":{"event_id":"evt-1","origin_seq":1,"lease_epoch":99}}'
+        )
+        outcome = self.coordinator.adjudicate(event)
+        self.assertEqual(outcome.decision, "reject")
+        self.assertEqual(outcome.reason, "lease epoch mismatch")
+
     def test_rejects_replayed_sequence(self) -> None:
         first = parse_input_line(
             '{"wire":{"kind":"hover","receiver":"0","sender":"100","body":{"tab":0,"url":"/tmp/a"}},"meta":{"event_id":"evt-1","origin_seq":2,"lease_epoch":1}}'
@@ -90,6 +100,23 @@ class CoordinatorTests(unittest.TestCase):
         outcome = self.coordinator.adjudicate(event)
         self.assertEqual(outcome.decision, "reject")
         self.assertEqual(outcome.reason, "self-targeted addressed operation")
+
+    def test_parses_raw_string_dds_body(self) -> None:
+        envelope = parse_wire_line("hover,0,100,not-json")
+        self.assertEqual(envelope.kind, "hover")
+        self.assertEqual(envelope.receiver, "0")
+        self.assertEqual(envelope.sender, "100")
+        self.assertEqual(envelope.body, "not-json")
+
+    def test_error_outcome_has_uniform_shape(self) -> None:
+        outcome = _error_outcome("input malformed", lineno=3, exc=ValueError("boom"))
+        self.assertIn("wire", outcome)
+        self.assertIn("meta", outcome)
+        self.assertIn("state", outcome)
+        self.assertIn("error", outcome)
+        self.assertIsNone(outcome["wire"])
+        self.assertIsNone(outcome["meta"])
+        self.assertIsNone(outcome["state"])
 
 
 if __name__ == "__main__":

@@ -22,6 +22,7 @@
 - peer spawn / close
 - single-pane baseline
 - focus hints into coordinator
+- `ya-layout` shell boundary wired
 
 ## Stage 3 — Addressed peer operations
 

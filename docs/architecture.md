@@ -3,6 +3,7 @@
 ## Authority split
 
 - **Kitty** owns layout and focus hints
+- **ya-layout** owns the fixed two-window shell and peer role metadata
 - **Yazi DDS** owns the wire contract
 - **Coordinator** owns authority, lease, ordering, and rejection
 - **CUE** owns declarative policy
