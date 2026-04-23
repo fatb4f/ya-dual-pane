@@ -3,7 +3,7 @@ package schema
 #Outcome: {
 	decision: "commit" | "reject" | "ignore"
 	reason: string & != ""
-	error?: string & != ""
+	error: string | null
 	wire: #DdsEnvelope | null
 	meta: #AuthorityMeta | null
 	state: {

@@ -1,0 +1,3 @@
+hover,0,100,{"tab":0,"url":"/tmp/a"}
+hover,0,100,{"tab":0,"url":"/tmp/b"}
+reveal_in_peer,100,100,{"url":"/tmp/d"}

@@ -13,6 +13,7 @@ authors = [
 dependencies = []
 
 [project.scripts]
+ya-bridge = "ya_dual_pane.bridge_cli:main"
 ya-coord = "ya_dual_pane.cli:main"
 ya-layout = "ya_dual_pane.layout:main"
 

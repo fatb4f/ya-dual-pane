@@ -31,6 +31,7 @@ class CoordinatorTests(unittest.TestCase):
         outcome = self.coordinator.adjudicate(event)
         self.assertEqual(outcome.decision, "commit")
         self.assertEqual(outcome.reason, "accepted")
+        self.assertIsNone(outcome.error)
         self.assertEqual(outcome.meta.participant_id, "yazi.primary")
         self.assertEqual(outcome.meta.commit_seq, 1)
 
@@ -101,6 +102,14 @@ class CoordinatorTests(unittest.TestCase):
         self.assertEqual(outcome.decision, "reject")
         self.assertEqual(outcome.reason, "self-targeted addressed operation")
 
+    def test_rejects_self_targeted_addressed_operation_via_participant_id(self) -> None:
+        event = parse_input_line(
+            '{"wire":{"kind":"reveal_in_peer","receiver":"yazi.primary","sender":"100","body":{"url":"/tmp/a"}},"meta":{"event_id":"evt-4","origin_seq":4,"lease_epoch":1}}'
+        )
+        outcome = self.coordinator.adjudicate(event)
+        self.assertEqual(outcome.decision, "reject")
+        self.assertEqual(outcome.reason, "self-targeted addressed operation")
+
     def test_parses_raw_string_dds_body(self) -> None:
         envelope = parse_wire_line("hover,0,100,not-json")
         self.assertEqual(envelope.kind, "hover")
@@ -109,7 +118,7 @@ class CoordinatorTests(unittest.TestCase):
         self.assertEqual(envelope.body, "not-json")
 
     def test_error_outcome_has_uniform_shape(self) -> None:
-        outcome = _error_outcome("input malformed", lineno=3, exc=ValueError("boom"))
+        outcome = _error_outcome(lineno=3, exc=ValueError("boom"))
         self.assertIn("wire", outcome)
         self.assertIn("meta", outcome)
         self.assertIn("state", outcome)
@@ -117,6 +126,7 @@ class CoordinatorTests(unittest.TestCase):
         self.assertIsNone(outcome["wire"])
         self.assertIsNone(outcome["meta"])
         self.assertIsNone(outcome["state"])
+        self.assertEqual(outcome["error"], "boom")
 
 
 if __name__ == "__main__":

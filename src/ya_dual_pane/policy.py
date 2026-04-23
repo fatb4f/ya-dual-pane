@@ -42,12 +42,44 @@ class RuntimePolicy:
     def participant_for_sender(self, sender: str) -> str | None:
         return self.sender_to_participant.get(sender)
 
+    def participant_for_id(self, participant_id: str) -> Participant | None:
+        return self.participants.get(participant_id)
+
+    def participant_for_address(self, address: str) -> str | None:
+        participant_id = self.participant_for_sender(address)
+        if participant_id is not None:
+            return participant_id
+        if address in self.participants:
+            return address
+        return None
+
+    def peer_participant_for_sender(self, sender: str) -> Participant | None:
+        participant_id = self.participant_for_sender(sender)
+        if participant_id is None:
+            return None
+        for candidate_id, participant in self.participants.items():
+            if candidate_id != participant_id:
+                return participant
+        return None
+
+    def peer_sender_for_sender(self, sender: str) -> str | None:
+        peer = self.peer_participant_for_sender(sender)
+        if peer is None:
+            return None
+        return peer.sender_ids[0] if peer.sender_ids else None
+
 
 
 def load_policy(path: str | Path) -> RuntimePolicy:
     policy_path = Path(path)
     if policy_path.suffix == ".cue":
-        raw = _load_policy_from_cue(policy_path)
+        try:
+            raw = _load_policy_from_cue(policy_path)
+        except PolicyError as exc:
+            mirror_path = _runtime_mirror_path(policy_path)
+            if not isinstance(exc.__cause__, FileNotFoundError) or not mirror_path.is_file():
+                raise
+            raw = json.loads(mirror_path.read_text())
     else:
         raw = json.loads(policy_path.read_text())
 
@@ -90,6 +122,11 @@ def _find_repo_root(path: Path) -> Path:
         if (candidate / "cue.mod" / "module.cue").is_file():
             return candidate
     raise PolicyError(f"unable to locate repo root for CUE policy: {path}")
+
+
+def _runtime_mirror_path(path: Path) -> Path:
+    repo_root = _find_repo_root(path)
+    return repo_root / "runtime" / f"policy.{path.stem}.json"
 
 
 def _load_participants(participants_raw: object) -> tuple[dict[str, Participant], dict[str, str]]:

@@ -41,6 +41,7 @@ class OutcomeMeta:
 class Outcome:
     decision: str
     reason: str
+    error: str | None
     wire: DdsEnvelope
     meta: OutcomeMeta
     state: dict[str, Any]
@@ -49,6 +50,7 @@ class Outcome:
         return {
             "decision": self.decision,
             "reason": self.reason,
+            "error": self.error,
             "wire": {
                 "kind": self.wire.kind,
                 "receiver": self.wire.receiver,

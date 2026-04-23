@@ -49,11 +49,11 @@ def parse_input_line(line: str) -> IngressEvent:
     return IngressEvent(wire=wire, meta=meta)
 
 
-def _error_outcome(reason: str, *, lineno: int, exc: Exception) -> dict[str, Any]:
+def _error_outcome(*, lineno: int, exc: Exception) -> dict[str, Any]:
     return {
         "decision": "reject",
         "reason": f"input error on line {lineno}: {exc}",
-        "error": reason,
+        "error": str(exc),
         "wire": None,
         "meta": None,
         "state": None,
@@ -85,7 +85,7 @@ def run_stream(
         except (InputError, DdsParseError) as exc:
             print(
                 json.dumps(
-                    _error_outcome("input malformed", lineno=lineno, exc=exc),
+                    _error_outcome(lineno=lineno, exc=exc),
                     sort_keys=True,
                 ),
                 file=stdout,

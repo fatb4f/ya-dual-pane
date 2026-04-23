@@ -50,15 +50,19 @@ class Coordinator:
                 commit_seq=None,
             )
 
-        if wire.kind in self.policy.routing.self_target_reject_kinds and wire.receiver == wire.sender:
-            return self._outcome(
-                decision="reject",
-                reason="self-targeted addressed operation",
-                wire=wire,
-                meta=meta,
-                participant_id=participant_id,
-                commit_seq=None,
-            )
+        if wire.kind in self.policy.routing.self_target_reject_kinds:
+            target_participant_id = self.policy.participant_for_address(wire.receiver)
+            if (
+                target_participant_id is not None and target_participant_id == participant_id
+            ) or wire.receiver == wire.sender:
+                return self._outcome(
+                    decision="reject",
+                    reason="self-targeted addressed operation",
+                    wire=wire,
+                    meta=meta,
+                    participant_id=participant_id,
+                    commit_seq=None,
+                )
 
         if wire.kind in self.policy.lease.required_kinds and participant_id != self.state.lease_holder:
             return self._outcome(
@@ -107,6 +111,7 @@ class Coordinator:
         return Outcome(
             decision=decision,
             reason=reason,
+            error=None,
             wire=wire,
             meta=OutcomeMeta(
                 event_id=meta.event_id,

@@ -1,0 +1,6 @@
+[mgr]
+prepend_keymap = [
+  { on = [ "g", "r" ], run = 'shell -- ya-bridge --policy profiles/dev.cue --sender 100 reveal-in-peer --url %h', desc = "Reveal hovered file in peer" },
+  { on = [ "g", "c" ], run = 'shell -- ya-bridge --policy profiles/dev.cue --sender 100 copy-to-peer %s', desc = "Copy selected files to peer" },
+  { on = [ "g", "m" ], run = 'shell -- ya-bridge --policy profiles/dev.cue --sender 100 move-to-peer %s', desc = "Move selected files to peer" },
+]

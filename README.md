@@ -4,9 +4,11 @@ Dual-pane Yazi workflow around two symmetric Yazi instances, a fixed two-pane Ki
 
 ## Current staging target
 
-This stage implements the **coordinator event loop skeleton** first.
+This stage implements the **participant-side DDS bridge** and the first
+addressed peer operations on top of the coordinator skeleton.
 
-It establishes the authority boundary before any Kitty pane-mode shell is wired on top:
+It keeps the authority boundary explicit before any deeper Yazi or Neovim
+integration:
 
 - DDS envelope is the wire oracle: `kind`, `receiver`, `sender`, `body`
 - participant identity is stable and separate from left/right placement
@@ -17,6 +19,9 @@ It establishes the authority boundary before any Kitty pane-mode shell is wired 
 The Kitty pane-mode shell is now wired as `ya_dual_pane.layout` / `ya-layout`
 and manages a strict two-window split on top of this contract.
 
+The participant-side DDS bridge lives in `ya_dual_pane.bridge` / `ya-bridge` and
+turns Yazi DDS traffic and addressed peer operations into coordinator ingress frames.
+
 ## Repository layout
 
 ```text
@@ -24,6 +29,7 @@ and manages a strict two-window split on top of this contract.
 ├── README.md
 ├── pyproject.toml
 ├── bin/
+│   ├── ya-bridge
 │   ├── ya-coord
 │   └── ya-layout
 ├── cue.mod/
@@ -33,8 +39,10 @@ and manages a strict two-window split on top of this contract.
 │   ├── coordinator.md
 │   └── milestones.md
 ├── examples/
-│   ├── ingress.jsonl
-│   └── expected-outcomes.jsonl
+│   ├── dds-lines.txt
+│   ├── expected-outcomes.jsonl
+│   └── yazi/
+│       └── keymap.toml
 ├── policy/
 │   ├── lease.cue
 │   ├── participants.cue
@@ -51,6 +59,8 @@ and manages a strict two-window split on top of this contract.
 │   └── ya_dual_pane/
 │       ├── __init__.py
 │       ├── cli.py
+│       ├── bridge.py
+│       ├── bridge_cli.py
 │       ├── coordinator.py
 │       ├── dds.py
 │       ├── layout.py
@@ -73,6 +83,7 @@ The staged coordinator already does the following:
 - suppresses duplicate event IDs
 - rejects policy-illegal addressed self-targets
 - emits structured `commit`, `reject`, or `ignore` outcomes as JSON lines
+- includes an `error` field on every outcome (`null` on success)
 
 The transport wrapper lives in `ya_dual_pane.transport.run_stream` and is
 exposed through `ya-coord run`.
@@ -112,6 +123,36 @@ PYTHONPATH=src python -m ya_dual_pane.cli run \
 PYTHONPATH=src bin/ya-coord run --policy profiles/dev.cue < examples/ingress.jsonl
 ```
 
+### Wrap Yazi DDS into coordinator ingress
+
+```bash
+PYTHONPATH=src bin/ya-bridge --policy profiles/dev.cue --sender 100 wrap < examples/dds-lines.txt
+```
+
+### Build an addressed peer operation
+
+```bash
+PYTHONPATH=src bin/ya-bridge --policy profiles/dev.cue --sender 100 reveal-in-peer --url /tmp/a
+```
+
+### Copy or move into the peer
+
+```bash
+PYTHONPATH=src bin/ya-bridge --policy profiles/dev.cue --sender 100 copy-to-peer /tmp/a /tmp/b --destination /dst
+PYTHONPATH=src bin/ya-bridge --policy profiles/dev.cue --sender 100 move-to-peer /tmp/a --destination /dst
+```
+
+### Yazi-side adapter entrypoint
+
+Use `ya-bridge` as the shell-action entrypoint inside Yazi when you want to
+emit a bridge frame instead of talking to the coordinator directly:
+
+```bash
+PYTHONPATH=src bin/ya-bridge --policy profiles/dev.cue --sender 100 reveal-in-peer --url /tmp/a
+```
+
+An example Yazi `keymap.toml` is in `examples/yazi/keymap.toml`.
+
 ### Enter kitty pane mode
 
 ```bash
@@ -143,13 +184,18 @@ Each line may provide either:
 
 CUE files in `schema/`, `policy/`, and `profiles/` define the intended declarative authority plane.
 
-The runtime exports `profiles/dev.cue` with `cue export` and treats the JSON mirror under `runtime/` as generated cache, not the source of truth.
+The runtime exports `profiles/dev.cue` with `cue export` when `cue` is available,
+and falls back to the JSON mirror under `runtime/` as bootstrap cache when it is
+not. The JSON mirror is generated, not the source of truth.
 
 ## Next stage
 
 After this skeleton is validated, the next correct layer is addressed peer
 operations bound against this contract:
 
+- peer reveal and cwd sync
+- copy / move into the peer pane
+- hover / selection forwarding
 - pane spawn / close
 - stable placement map
 - focus hints

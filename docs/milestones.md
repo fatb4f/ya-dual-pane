@@ -24,8 +24,9 @@
 - focus hints into coordinator
 - `ya-layout` shell boundary wired
 
-## Stage 3 — Addressed peer operations
+## Stage 3 — DDS bridge and addressed peer operations
 
+- participant-side DDS bridge
 - `reveal_in_peer`
 - `cd_peer_here`
 - `copy_to_peer`

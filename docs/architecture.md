@@ -5,6 +5,7 @@
 - **Kitty** owns layout and focus hints
 - **ya-layout** owns the fixed two-window shell and peer role metadata
 - **Yazi DDS** owns the wire contract
+- **Bridge** turns Yazi DDS traffic into coordinator ingress and addressed peer ops
 - **Coordinator** owns authority, lease, ordering, and rejection
 - **CUE** owns declarative policy
 - **Neovim** remains an optional side-effect adapter
@@ -21,7 +22,7 @@
 ```text
 Yazi primary ----\
                   \
-Yazi peer ---------> coordinator ----> authoritative outcomes
+Yazi peer ---------> bridge ----> coordinator ----> authoritative outcomes
                   /
 Kitty focus hints /
 
@@ -38,6 +39,15 @@ Canonical envelope:
 - `receiver`
 - `sender`
 - `body`
+
+### Bridge sidecar
+
+The bridge adds the ingress metadata that DDS does not carry itself:
+
+- `event_id`
+- `origin_seq`
+- `lease_epoch`
+- `causal_id`
 
 ### Authority sidecar
 

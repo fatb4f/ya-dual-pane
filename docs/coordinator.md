@@ -72,10 +72,10 @@ One JSON object per line with:
 
 - `decision`
 - `reason`
-- `error` for malformed input, if present
+- `error`
 - `wire`
 - `meta`
 - `state`
 
 On malformed input, `wire`, `meta`, and `state` are `null` and `error`
-describes the failure.
+contains the failure text. On successful outcomes, `error` is `null`.
