@@ -1,0 +1,4 @@
+{"decision":"commit","reason":"accepted"}
+{"decision":"ignore","reason":"duplicate event_id"}
+{"decision":"reject","reason":"sender is not current lease holder for lease-protected kind"}
+{"decision":"reject","reason":"self-targeted addressed operation"}

@@ -1,0 +1,4 @@
+{"wire":{"kind":"hover","receiver":"0","sender":"100","body":{"tab":0,"url":"/tmp/a"}},"meta":{"event_id":"evt-1","origin_seq":1,"lease_epoch":1}}
+{"wire":{"kind":"hover","receiver":"0","sender":"100","body":{"tab":0,"url":"/tmp/b"}},"meta":{"event_id":"evt-1","origin_seq":2,"lease_epoch":1}}
+{"wire_raw":"hover,0,200,{\"tab\":0,\"url\":\"/tmp/c\"}","meta":{"event_id":"evt-2","origin_seq":1,"lease_epoch":1}}
+{"wire":{"kind":"reveal_in_peer","receiver":"100","sender":"100","body":{"url":"/tmp/d"}},"meta":{"event_id":"evt-3","origin_seq":3,"lease_epoch":1}}
